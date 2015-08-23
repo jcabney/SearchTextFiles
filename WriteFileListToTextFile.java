@@ -26,10 +26,16 @@ public class WriteFileListToTextFile {
 			
 			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
 			
-			//loops through ArrayList, writing each entry on its own line
-			for(int i=0; i<files.size(); i++)
-	            bw.write(files.get(i) + "\n");
-			bw.close();
+			if (files.size() == 0) {
+				bw.write("No files found");
+			} else {
+				//loops through ArrayList, writing each entry on its own line
+				for(int i=0; i<files.size(); i++) {
+					bw.write(files.get(i)); //writes item from ArrayList to file
+					bw.newLine(); // goes to next line
+				}
+				bw.close();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

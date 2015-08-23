@@ -22,7 +22,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.JTextArea;
+import javax.swing.JOptionPane;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -32,7 +34,7 @@ public class Viewer extends JFrame {
 	//set by initViewer method
 	private File searchFile = null;
 	private File fileSaveLocation = null;
-	private String[] keyWords;
+	private String[] keyWords = null;
 	
 	private static final long serialVersionUID = 1L;
  
@@ -47,19 +49,21 @@ public class Viewer extends JFrame {
 	//GUI is created here 
 	private void initViewer() {
 		//Basic frame setup
-		setTitle("Key Word File Search");
-		setSize(300, 200);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+		final JFrame frame = new JFrame("Key Word File Search");
+		frame.setSize(300, 200);
+        frame.setLocationRelativeTo(null);
+        frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
         
         //Creating panel
         JPanel panel = new JPanel();
         
         //Create labels - key words to search for
-        JLabel keyWordsToSearchFor = new JLabel("Enter key words to search files for");
+        JLabel keyWordsToSearchFor = new JLabel("Enter key words to search files for:");
         
-        //Create text field
-        final JTextField keyWordToSearchForField = new JTextField(30);
+        //Create text area for user to type key words into
+        final JTextArea keyWordToSearchForField = new JTextArea(); //changed from JTextField to JTextArea so text will wrap
+        keyWordToSearchForField.setLineWrap(true);
+        keyWordToSearchForField.setWrapStyleWord(true);
         
         //Create buttons to allow user to select directory to search and to choose location to save results text file to
         JButton directoryButton = new JButton("Choose Search Directory");
@@ -81,19 +85,28 @@ public class Viewer extends JFrame {
         //Model is called at this point.
         runModelButton.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent ae) {
-        		JFileChooser resultsSaveLocation = new JFileChooser();
-        		resultsSaveLocation.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); //files have to be saved to a directory
-        		int returnValue = resultsSaveLocation.showOpenDialog(null);
-        		if (returnValue == JFileChooser.APPROVE_OPTION) {
-        			fileSaveLocation = resultsSaveLocation.getSelectedFile();
-        		}
-        		
         		//input text split into array of strings
         		keyWords = keyWordToSearchForField.getText().split(" ");
         		
-        		//static model method is called
-        		WalkTheFileTree.model(keyWords, searchFile, fileSaveLocation);
-            }
+        		//ensures user has input required fields before continuing
+        		if (searchFile == null || keyWords == null) {
+        			JOptionPane.showMessageDialog(frame,
+        					    "Please make sure you enter key words and choose a search directory before pressing Run"); //reminds user to enter fields
+        		} else { 
+        			JFileChooser resultsSaveLocation = new JFileChooser();
+        			resultsSaveLocation.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); //files have to be saved to a directory
+        			int returnValue = resultsSaveLocation.showOpenDialog(null);
+        			if (returnValue == JFileChooser.APPROVE_OPTION) {
+        				fileSaveLocation = resultsSaveLocation.getSelectedFile();
+        			}
+        		
+        			//static model method is called. searches files in specified directory and writes matches to file.
+        			WalkTheFileTree.model(keyWords, searchFile, fileSaveLocation);
+        			keyWordToSearchForField.setText(null); // after results file is saved, user input variables are cleared.
+        			searchFile = null;
+        			fileSaveLocation = null;
+        		}	
+        	}
         });
          
         //Add components to panel using Group Layout for positioning
@@ -118,9 +131,9 @@ public class Viewer extends JFrame {
         layout.setVerticalGroup(topToBottom);
         
         //Panel with components is added to Frame
-        add(panel);
+        frame.add(panel);
         
         //Display the window.
-        setVisible(true);
+        frame.setVisible(true);
     }
 }
